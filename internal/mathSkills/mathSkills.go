@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -96,36 +95,38 @@ func getText(file string) (string, error) {
 }
 
 func process(text string) {
-	numberString := strings.Split(text, "\n")
-
-	numbers := make([]float64, 0, len(numberString))
-
-	for _, v := range numberString {
-		number, err := strconv.ParseFloat(v, 64)
-		if err != nil {
-			fmt.Println("Not valid")
-			return
+	numbers := make([]int, 0, len(text))
+	var num string
+	for _, v := range text {
+		if v == '\n' {
+			number, err := strconv.Atoi(num)
+			if err != nil {
+				fmt.Println("Not valid")
+				return
+			}
+			num = ""
+			numbers = append(numbers, number)
+			continue
 		}
-		numbers = append(numbers, number)
+		num += string(v)
 	}
-
-	fmt.Printf("Average: %d\n", int(average(numbers)))
-	fmt.Printf("Median: %d\n", int(round(median(numbers))))
+	fmt.Printf("Average: %d\n", average(numbers))
+	fmt.Printf("Median: %d\n", median(numbers))
 	fmt.Printf("Variance: %d\n", int(round(variance(numbers))))
 	fmt.Printf("Standard Deviation: %d\n", int(round(math.Sqrt(float64(variance(numbers))))))
 }
 
-func average(numbers []float64) float64 {
-	sum := 0.0
+func average(numbers []int) int {
+	sum := 0
 	for _, v := range numbers {
 		sum += v
 	}
 
-	return sum / float64(len(numbers))
+	return sum / len(numbers)
 }
 
-func median(numbers []float64) float64 {
-	sort.Float64s(numbers)
+func median(numbers []int) int {
+	sort.Ints(numbers)
 
 	if len(numbers)%2 != 0 {
 		return numbers[len(numbers)/2]
@@ -133,15 +134,15 @@ func median(numbers []float64) float64 {
 
 	l1 := (len(numbers) / 2) - 1
 	l2 := (len(numbers) / 2)
-	return average([]float64{numbers[l1], numbers[l2]})
+	return average([]int{numbers[l1], numbers[l2]})
 }
 
-func variance(numbers []float64) float64 {
+func variance(numbers []int) float64 {
 	mean := average(numbers)
 	var result float64
 	for _, v := range numbers {
 		dif := (v - mean)
-		result += dif * dif
+		result += float64(dif) * float64(dif)
 	}
 
 	return result / float64(len(numbers))
