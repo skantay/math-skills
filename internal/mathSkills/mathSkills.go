@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -31,6 +32,10 @@ func Run() error {
 	text, err := getText(file)
 	if err != nil {
 		return fmt.Errorf("%s: %w", errFileName, err)
+	}
+
+	if text == "" {
+		return nil
 	}
 
 	process(text)
@@ -93,54 +98,55 @@ func getText(file string) (string, error) {
 func process(text string) {
 	numberString := strings.Split(text, "\n")
 
-	numbers := make([]int, 0, len(numberString))
+	numbers := make([]float64, 0, len(numberString))
 
 	for _, v := range numberString {
-		number, err := strconv.Atoi(v)
+		number, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			continue
+			fmt.Println("Not valid")
+			return
 		}
 		numbers = append(numbers, number)
 	}
 
-	fmt.Printf("Average: %d\n", average(numbers))
-	fmt.Printf("Median: %d\n", median(numbers))
-	fmt.Printf("Variance: %d\n", variance(numbers))
-	fmt.Printf("Standard Deviation: %d\n", round(math.Sqrt(float64(variance(numbers)))))
+	fmt.Printf("Average: %d\n", int(average(numbers)))
+	fmt.Printf("Median: %d\n", int(round(median(numbers))))
+	fmt.Printf("Variance: %d\n", int(round(variance(numbers))))
+	fmt.Printf("Standard Deviation: %d\n", int(round(math.Sqrt(float64(variance(numbers))))))
 }
 
-func average(numbers []int) int {
-	sum := 0
+func average(numbers []float64) float64 {
+	sum := 0.0
 	for _, v := range numbers {
 		sum += v
 	}
 
-	return sum / len(numbers)
+	return sum / float64(len(numbers))
 }
 
-func median(numbers []int) int {
-	for i := 0; i < len(numbers)-1; i++ {
-		for j := 0; j < len(numbers)-i-1; j++ {
-			if numbers[j] > numbers[j+1] {
-				numbers[j], numbers[j+1] = numbers[j+1], numbers[j]
-			}
-		}
+func median(numbers []float64) float64 {
+	sort.Float64s(numbers)
+
+	if len(numbers)%2 != 0 {
+		return numbers[len(numbers)/2]
 	}
 
-	return numbers[len(numbers)/2]
+	l1 := (len(numbers) / 2) - 1
+	l2 := (len(numbers) / 2)
+	return average([]float64{numbers[l1], numbers[l2]})
 }
 
-func variance(numbers []int) int {
+func variance(numbers []float64) float64 {
 	mean := average(numbers)
-	var result int
+	var result float64
 	for _, v := range numbers {
 		dif := (v - mean)
 		result += dif * dif
 	}
 
-	return result / len(numbers)
+	return result / float64(len(numbers))
 }
 
-func round(x float64) int {
-	return int(math.Round(x))
+func round(x float64) float64 {
+	return math.Round(x)
 }
