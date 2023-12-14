@@ -1,6 +1,7 @@
 package mathSkills
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math"
@@ -13,8 +14,8 @@ import (
 
 var (
 	errGetFiles = errors.New("err: run() ---> getFiles()")
-	errGetText  = errors.New("err: run() ---> getText()")
 	errFileName = errors.New("err: run() ---> validateFiles()")
+	errGetText  = errors.New("err: run() ---> getText()")
 	errPutFile  = errors.New("err: run() ---> putFile()")
 )
 
@@ -23,22 +24,14 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", errGetFiles, err)
 	}
-
 	if err := validateFiles(file); err != nil {
-		return fmt.Errorf("%s: %w", errGetText, err)
-	}
-
-	text, err := getText(file)
-	if err != nil {
 		return fmt.Errorf("%s: %w", errFileName, err)
 	}
-
-	if text == "" {
-		return nil
+	numbers, err := getText(file)
+	if err != nil {
+		return fmt.Errorf("%s: %w", errGetText, err)
 	}
-
-	process(text)
-
+	process(numbers)
 	return nil
 }
 
@@ -48,7 +41,6 @@ func Error() error {
 	err3 := errors.New("why would you skip my README")
 	err4 := errors.New("bruh, something is wrong")
 	err5 := errors.New("i want an ice cream")
-
 	errors := []error{
 		err1,
 		err2,
@@ -56,7 +48,6 @@ func Error() error {
 		err4,
 		err5,
 	}
-
 	return errors[randInt(0, len(errors))]
 }
 
@@ -70,81 +61,74 @@ func getFiles() (string, error) {
 	if one := 1; len(args) != one {
 		return "", errors.New("enter ONLY one file path")
 	}
-
 	return args[0], nil
 }
 
 func validateFiles(file string) error {
 	fileExt := filepath.Ext(file)
 	errorText := "file extension is invalid. Provide ONLY .txt files"
-
 	if fileExt != ".txt" && fileExt != "" {
 		return fmt.Errorf("input, %s", errorText)
 	}
-
 	return nil
 }
 
-func getText(file string) (string, error) {
-	data, err := os.ReadFile(file)
+func getText(file string) ([]int, error) {
+	fileO, err := os.Open(file)
 	if err != nil {
-		return "", fmt.Errorf("%s no such file", file)
+		return nil, err
 	}
-
-	return string(data), nil
+	scanner := bufio.NewScanner(fileO)
+	var numbers []int
+	for scanner.Scan() {
+		n, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		numbers = append(numbers, n)
+	}
+	return numbers, nil
 }
 
-func process(text string) {
-	numbers := make([]int, 0, len(text))
-	var num string
-	for _, v := range text {
-		if v == '\n' {
-			number, err := strconv.Atoi(num)
-			if err != nil {
-				fmt.Println("Not valid")
-				return
-			}
-			num = ""
-			numbers = append(numbers, number)
-			continue
-		}
-		num += string(v)
+func process(numbers []int) {
+	if len(numbers) == 0 {
+		return
 	}
-	fmt.Printf("Average: %d\n", average(numbers))
-	fmt.Printf("Median: %d\n", median(numbers))
+	fmt.Printf("Average: %d\n", int(round(average(numbers))))
+	fmt.Printf("Median: %d\n", int((median(numbers))))
 	fmt.Printf("Variance: %d\n", int(round(variance(numbers))))
 	fmt.Printf("Standard Deviation: %d\n", int(round(math.Sqrt(float64(variance(numbers))))))
 }
 
-func average(numbers []int) int {
+func average(numbers []int) float64 {
 	sum := 0
 	for _, v := range numbers {
 		sum += v
 	}
-
-	return sum / len(numbers)
+	return float64(sum) / float64(len(numbers))
 }
 
-func median(numbers []int) int {
+func median(numbers []int) float64 {
 	sort.Ints(numbers)
-
 	if len(numbers)%2 != 0 {
-		return numbers[len(numbers)/2]
+		return float64(numbers[len(numbers)+1/2])
 	}
-
-	l1 := (len(numbers) / 2) - 1
-	l2 := (len(numbers) / 2)
-	return average([]int{numbers[l1], numbers[l2]})
+	l1 := (len(numbers) / 2)
+	l2 := (len(numbers) / 2) + 1
+	ave := []int{
+		numbers[l1],
+		numbers[l2],
+	}
+	return average(ave)
 }
 
 func variance(numbers []int) float64 {
 	mean := average(numbers)
 	var result float64
 	for _, v := range numbers {
-		dif := (v - mean)
+		dif := (float64(v) - mean)
 		result += float64(dif) * float64(dif)
 	}
-
 	return result / float64(len(numbers))
 }
 
