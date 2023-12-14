@@ -12,8 +12,18 @@ cd math-skills/cmd
 ```
 
 ```bash
+./math-skills
+```
+- if needed run
+```bash
+chmod +x math-skills
+```
+
+```bash
 go run . <fileName>
 ```
+
+And compare the output of both programms
 
 ## about this project
 
@@ -23,3 +33,5 @@ go run . <fileName>
     - Median
     - Variance
     - Standard Deviation
+
+2. File "math-skills" generate a data.txt and output on strin. Then you can run main.go with data.txt and compare the result of main.go and original right values of math-skills
