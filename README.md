@@ -27,7 +27,7 @@ And compare the output of both programms
 
 ## about this project
 
-1. The purpose of this project is for you to calculate the following:
+1. The program takes in as an argument a file of numbers and calculates...
 
     - Average
     - Median
